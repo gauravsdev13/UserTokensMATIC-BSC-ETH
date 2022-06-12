@@ -7,19 +7,14 @@ const USDTContractABI = [{"constant":true,"inputs":[],"name":"name","outputs":[{
 
 function UserTokens() {
 
-  const [USDCPrice, setUSDCPrice] = useState(0);
   const [DAIPrice, setDAIPrice] = useState(0);
   const [MATICPrice, setMATICPrice] = useState(0);
   const [WBTCPrice, setWBTCPrice] = useState(0);
   const [ETHPrice, setETHPrice] = useState(0);
   const [BUSDPrice, setBUSDPrice] = useState(0);
-  const [USDTPrice, setUSDTPrice] = useState(0);
   
-   useEffect( () => {
-  async function getData() {
 
-  var res = await Axios.get("https://min-api.cryptocompare.com/data/price?fsym=USDC&tsyms=USD");
-  setUSDCPrice(JSON.parse(JSON.stringify(res.data)))
+  async function getPriceData() {
 
   res = await Axios.get("https://min-api.cryptocompare.com/data/price?fsym=DAI&tsyms=USD");
   setDAIPrice(JSON.parse(JSON.stringify(res.data)))
@@ -36,15 +31,10 @@ function UserTokens() {
   res = await Axios.get("https://min-api.cryptocompare.com/data/price?fsym=BUSD&tsyms=USD");
   setBUSDPrice(JSON.parse(JSON.stringify(res.data)))
 
-  res = await Axios.get("https://min-api.cryptocompare.com/data/price?fsym=USDT&tsyms=USD");
-  setUSDTPrice(JSON.parse(JSON.stringify(res.data)))
-
-
  }
- getData()
-}
-), []; 
- 
+
+setInterval( getPriceData(), 45000)
+
 
     const [navbarStatus, setNavbarStatus] = useState("Connect");
     const [status, setStatus] = useState();
@@ -100,29 +90,14 @@ function UserTokens() {
 
     }
 
-   /*  const chainChangedHandler = () => {
-      getUSDTBalance()
-    } */
- 
-
     window.ethereum.on('accountsChanged', accountChangedHandler);
-  /*   window.ethereum.on('chainChanged', chainChangedHandler); */
-
 
     const networks = {
-       
-        ethereum: {
-            chainId:  `0x${Number(1).toString(16)}`,
-            chainName: 'Ethereum Main Network (Mainnet)',         
-            nativeCurrency: {
-              name: "Ethereum",
-              symbol: "ETH",
-              decimals: 18
-            },    
-            rpcUrls: ['https://rpc.ankr.com/eth'],          
-            blockExplorerUrls: ['https://etherscan.io'],         
-        },
 
+      ethereum: {
+        chainId: `0x1`
+      },
+       
         polygon: {
           chainId: `0x${Number(137).toString(16)}`,
           chainName: "Polygon Mainnet",
@@ -177,7 +152,8 @@ function UserTokens() {
 
     ];
 
-      const changeNetwork = async ({ networkName, setError }) => {
+
+      const changeNetwork = async ({ networkName }) => {
         try {
           if (!window.ethereum) throw new Error("Install Metamask");
           await window.ethereum.request({
@@ -189,36 +165,49 @@ function UserTokens() {
             ]
           });
         } catch (err) {
-          setError(err.message);
+        console.log (err)
         }
       };
-    
-        const [error, setError] = useState();
+
+      const changeToETHMainnet = async () => {
+
+        try {
+          if (!window.ethereum) throw new Error("Install Metamask");
+          await window.ethereum.request({
+            method: "wallet_switchEthereumChain",
+            params:     {
+              chainId:  `0x1`       
+                }
+          });
+        } catch (err) {
+        console.log (err)
+        }
+
+      }
 
         const [ethShow, setEthShow] = useState(false);
         const [bscShow, setBscShow] = useState(false);
         const [polygonShow, setPolygonShow] = useState(false);
       
         const handleNetworkSwitch = async (networkName) => {
-          setError();
-          await changeNetwork({ networkName, setError });
+          await changeNetwork({ networkName });
         };
       
-        const handleEthereum = () => {
-          handleNetworkSwitch('ethereum'); 
+        async function handleEthereum ()  {
+          await changeToETHMainnet()
           getUSDTBalance()
           setEthShow(true); setBscShow(false); setPolygonShow(false)
         }
 
-        const handleBSC = () => {
-            handleNetworkSwitch('bsc');  
-            getBSCBalances();
+        async function handleBSC () {
+         await handleNetworkSwitch('bsc');  
+          getBSCBalances();
             setEthShow(false); setBscShow(true); setPolygonShow(false)
             }
 
 
-        const handlePolygon = () => {        
-          handleNetworkSwitch('polygon'); 
+        async function handlePolygon () {        
+        await handleNetworkSwitch('polygon'); 
           getPolygonBalances()
           setEthShow(false); setBscShow(false); setPolygonShow(true)
             }
@@ -228,8 +217,7 @@ function UserTokens() {
         };
       
         useEffect(() => {
-          window.ethereum.on("chainChanged", networkChanged);
-      
+          window.ethereum.on("chainChanged", networkChanged);    
           return () => {
             window.ethereum.removeListener("chainChanged", networkChanged);
           };
@@ -385,7 +373,7 @@ function UserTokens() {
 
                <div className='List B'>ETH &nbsp; Balance  {BSCETHBalance} &nbsp;  Price {JSON.stringify(ETHPrice.USD)}$ </div>
                <div className='List B'>BUSD &nbsp; Balance  {BUSDBalance} &nbsp;  Price {JSON.stringify(BUSDPrice.USD)}$  </div>
-               <div className='List B'>USDC &nbsp; Balance  {BSCUSDCBalance} &nbsp;  Price  {JSON.stringify(USDCPrice.USD)}$ </div>
+               <div className='List B'>USDC &nbsp; Balance  {BSCUSDCBalance} &nbsp;  Price 1$ </div>
                <div className='List B'>DAI &nbsp; Balance  {BSCDAIBalance} &nbsp;  Price {JSON.stringify(DAIPrice.USD)}$  </div>
 
   </> }
@@ -396,7 +384,7 @@ function UserTokens() {
 
                <div className='List P'>WETH &nbsp; Balance  {polygonWETHBalance} &nbsp;  Price {JSON.stringify(ETHPrice.USD)}$ </div>
                <div className='List P'>DAI &nbsp; Balance  {polygonDAIBalance} &nbsp;  Price {JSON.stringify(DAIPrice.USD)}$  </div>
-               <div className='List P'>USDC &nbsp; Balance  {polygonUSDCBalance} &nbsp;  Price  {JSON.stringify(USDCPrice.USD)}$   </div>
+               <div className='List P'>USDC &nbsp; Balance  {polygonUSDCBalance} &nbsp;  Price  1$   </div>
                <div className='List P'>WMATIC &nbsp; Balance  {polygonWMATICBalance} &nbsp;  Price {JSON.stringify(MATICPrice.USD)}$  </div>
                <div className='List P'>WBTC &nbsp; Balance {polygonWBTCBalance} &nbsp;  Price {JSON.stringify(WBTCPrice.USD)}$  </div>
 
